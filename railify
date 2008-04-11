@@ -56,10 +56,6 @@ if __FILE__ == $0
 
   unless app_name.nil?
     
-    #  announcing "Fetching EDGE rails" do
-    #    Dir.chdir(RAILS_SVN_CHECKOUT) { silent "svn update" }
-    #  end
-
     announcing "Creating application layout" do
       silent "rails #{app_name}"
     end
@@ -87,21 +83,9 @@ if __FILE__ == $0
         git "Basic rails app structure"
       end
 
-  #    announcing "Freezing rails" do
-  #      rake "gems:freeze", :gem => "rails"
-  ##      braid "http://dev.rubyonrails.org/svn/rails/trunk", "vendor/rails"
-  #    end
-
-  #    announcing "Installing GemsOnrails" do
-  #      silent "gemsonrails"
-  #      git "Froze GemsOnRails plugin"
-  #    end
-
-  #    announcing "Installing haml" do
-  #      silent "haml --rails ."
-  #      rake "gems:freeze", :gem => "haml"
-  #      git "Froze haml gem and plugin"
-  #    end
+      announcing "Freezing rails" do
+        rake "rails:freeze:gems"
+      end
 
       announcing "Installing RSpec" do
         braid "http://rspec.rubyforge.org/svn/trunk/rspec", "vendor/plugins/rspec"
@@ -113,9 +97,6 @@ if __FILE__ == $0
         git "Added RSpec base files"
       end
 
-  #    announcing "Installing make_resourceful" do
-  #      braid "http://svn.hamptoncatlin.com/make_resourceful/trunk", "vendor/plugins/make_resourceful"
-  #    end
     end
   else
     usage
