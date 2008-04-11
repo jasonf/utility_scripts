@@ -20,6 +20,10 @@ module Helpers
     puts "\e[32m[DONE]\e[0m"
   end
 
+  def usage
+    print "USAGE: railify some_app_name"
+  end
+
   def silent(command)
     system "#{command} &> /dev/null"
   end
@@ -50,65 +54,70 @@ if __FILE__ == $0
 
   app_name  = ARGV.first
 
-  announcing "Fetching EDGE rails" do
-    Dir.chdir(RAILS_SVN_CHECKOUT) { silent "svn update" }
+  unless app_name.nil?
+    
+    #  announcing "Fetching EDGE rails" do
+    #    Dir.chdir(RAILS_SVN_CHECKOUT) { silent "svn update" }
+    #  end
+
+    announcing "Creating application layout" do
+      silent "rails #{app_name}"
+    end
+
+    Dir.chdir(app_name) do
+      announcing "Setting up rails app" do
+        silent "rm README"
+        silent "rm public/index.html"
+        silent "rm log/*.log"
+        silent "rm public/images/rails.png"
+        silent "cp config/database.{,sample.}yml"
+        silent "rm -r test"
+        File.open("config/routes.rb", "w") {|f| f << templates[:routes] }
+      end
+
+      announcing "Creating databases" do
+        rake "db:create"
+        rake "db:create", :rails_env => "test"
+      end
+
+      announcing "Configuring git repo" do
+        silent "git init"
+        File.open(".gitignore", "w") {|f| f << templates[:gitignore] }
+        silent "touch {tmp,log}/.gitignore"
+        git "Basic rails app structure"
+      end
+
+  #    announcing "Freezing rails" do
+  #      rake "gems:freeze", :gem => "rails"
+  ##      braid "http://dev.rubyonrails.org/svn/rails/trunk", "vendor/rails"
+  #    end
+
+  #    announcing "Installing GemsOnrails" do
+  #      silent "gemsonrails"
+  #      git "Froze GemsOnRails plugin"
+  #    end
+
+  #    announcing "Installing haml" do
+  #      silent "haml --rails ."
+  #      rake "gems:freeze", :gem => "haml"
+  #      git "Froze haml gem and plugin"
+  #    end
+
+      announcing "Installing RSpec" do
+        braid "http://rspec.rubyforge.org/svn/trunk/rspec", "vendor/plugins/rspec"
+        braid "http://rspec.rubyforge.org/svn/trunk/rspec_on_rails", "vendor/plugins/rspec_on_rails"
+      end
+
+      announcing "Generating RSpec base files" do
+        silent "script/generate rspec"
+        git "Added RSpec base files"
+      end
+
+  #    announcing "Installing make_resourceful" do
+  #      braid "http://svn.hamptoncatlin.com/make_resourceful/trunk", "vendor/plugins/make_resourceful"
+  #    end
+    end
+  else
+    usage
   end
-
-  announcing "Creating application layout" do
-    silent "ruby #{RAILS_SVN_CHECKOUT}/railties/bin/rails #{app_name}"
-  end
-
-  Dir.chdir(app_name) do
-    announcing "Setting up rails app" do
-      silent "rm README"
-      silent "rm public/index.html"
-      silent "rm log/*.log"
-      silent "rm public/images/rails.png"
-      silent "cp config/database.{,sample.}yml"
-      silent "rm -r test"
-      File.open("config/routes.rb", "w") {|f| f << templates[:routes] }
-    end
-
-    announcing "Creating databases" do
-      rake "db:create"
-      rake "db:create", :rails_env => "test"
-    end
-
-    announcing "Configuring git repo" do
-      silent "git init"
-      File.open(".gitignore", "w") {|f| f << templates[:gitignore] }
-      silent "touch {tmp,log}/.gitignore"
-      git "Basic rails app structure"
-    end
-
-    announcing "Freezing rails" do
-      braid "http://dev.rubyonrails.org/svn/rails/trunk", "vendor/rails"
-    end
-
-    announcing "Installing GemsOnrails" do
-      silent "gemsonrails"
-      git "Froze GemsOnRails plugin"
-    end
-
-    announcing "Installing haml" do
-      silent "haml --rails ."
-      rake "gems:freeze", :gem => "haml"
-      git "Froze haml gem and plugin"
-    end
-
-    announcing "Installing RSpec" do
-      braid "http://rspec.rubyforge.org/svn/trunk/rspec", "vendor/plugins/rspec"
-      braid "http://rspec.rubyforge.org/svn/trunk/rspec_on_rails", "vendor/plugins/rspec_on_rails"
-    end
-
-    announcing "Generating RSpec base files" do
-      silent "script/generate rspec"
-      git "Added RSpec base files"
-    end
-
-    announcing "Installing make_resourceful" do
-      braid "http://svn.hamptoncatlin.com/make_resourceful/trunk", "vendor/plugins/make_resourceful"
-    end
-  end
-
 end
